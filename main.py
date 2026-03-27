@@ -1,42 +1,75 @@
-from flask import Flask, jsonify, request
+from flask import Flask, request, jsonify, redirect
 import yt_dlp
 import os
+import tempfile
 
 app = Flask(__name__)
+
+def build_opts(client):
+    opts = {
+        'quiet': True,
+        'no_warnings': True,
+        'noplaylist': True,
+        'skip_download': True,
+
+        # 🔥 pakai bestaudio (biar yt-dlp yang pilih)
+        'format': 'bestaudio/best',
+
+        # 🔥 fallback client
+        'extractor_args': {
+            'youtube': {
+                'player_client': [client],
+            }
+        },
+
+        'nocheckcertificate': True,
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0'
+        }
+    }
+
+    cookies = os.environ.get('COOKIES_TXT')
+    if cookies:
+        tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
+        tmp.write(cookies)
+        tmp.flush()
+        opts['cookiefile'] = tmp.name
+
+    return opts
+
+
+@app.route('/')
+def index():
+    return jsonify({'status': 'ok'})
+
 
 @app.route('/stream')
 def stream():
     video_id = request.args.get('id')
     if not video_id:
-        return jsonify({'error': 'missing id'}), 400
+        return jsonify({'error': 'Missing id'}), 400
 
-    cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
+    url = f'https://www.youtube.com/watch?v={video_id}'
 
-    ydl_opts = {
-        'quiet': False,
-        'no_warnings': False,
-        'cookiefile': cookies_path,
-        'listformats': True,  # ← list semua format yang available
-    }
+    # 🔥 urutan fallback (yang paling sering tembus dulu)
+    clients = ['android', 'tv_embedded', 'web']
 
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(
-                f'https://www.youtube.com/watch?v={video_id}',
-                download=False
-            )
-            formats = info.get('formats', [])
-            available = [
-                {
-                    'itag': f.get('format_id'),
-                    'mime': f.get('mimetype', f.get('ext')),
-                    'note': f.get('format_note'),
-                }
-                for f in formats
-            ]
-            return jsonify({'formats': available})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    for client in clients:
+        try:
+            with yt_dlp.YoutubeDL(build_opts(client)) as ydl:
+                info = ydl.extract_info(url, download=False)
+
+                audio_url = info.get('url')
+                if audio_url:
+                    # 🔥 redirect langsung (lebih ringan & stabil)
+                    return redirect(audio_url)
+
+        except Exception as e:
+            print(f"[{client}] failed: {e}")
+            continue
+
+    return jsonify({'error': 'All clients failed'}), 500
+
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=7860)
