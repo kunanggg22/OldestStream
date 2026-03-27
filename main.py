@@ -13,10 +13,10 @@ def stream():
     cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
 
     ydl_opts = {
-        'format': 'bestaudio/best',
-        'quiet': True,
-        'no_warnings': True,
+        'quiet': False,
+        'no_warnings': False,
         'cookiefile': cookies_path,
+        'listformats': True,  # ← list semua format yang available
     }
 
     try:
@@ -25,8 +25,16 @@ def stream():
                 f'https://www.youtube.com/watch?v={video_id}',
                 download=False
             )
-            url = info['url']
-            return jsonify({'url': url})
+            formats = info.get('formats', [])
+            available = [
+                {
+                    'itag': f.get('format_id'),
+                    'mime': f.get('mimetype', f.get('ext')),
+                    'note': f.get('format_note'),
+                }
+                for f in formats
+            ]
+            return jsonify({'formats': available})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
