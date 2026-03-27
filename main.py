@@ -12,12 +12,12 @@ def stream():
 
     cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
 
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'quiet': False,
-        'no_warnings': False,
-        'cookiefile': cookies_path,
-    }
+ydl_opts = {
+    'format': 'bestaudio/best',
+    'quiet': True,
+    'no_warnings': True,
+    'cookiefile': cookies_path,
+}
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
