@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 import yt_dlp
 
-app = Flask(__name__)
+app = Flask(_name_)
 
 @app.route('/stream')
 def stream():
@@ -13,6 +13,11 @@ def stream():
         'format': 'bestaudio[ext=m4a]/bestaudio',
         'quiet': True,
         'no_warnings': True,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android_vr'],  # ← pakai client yang tidak kena bot check
+            }
+        }
     }
     
     try:
@@ -26,5 +31,5 @@ def stream():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-if __name__ == '__main__':
+if _name_ == '_main_':
     app.run(host='0.0.0.0', port=8080)
