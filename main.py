@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 import yt_dlp
+import os
 
 app = Flask(__name__)
 
@@ -8,21 +9,16 @@ def stream():
     video_id = request.args.get('id')
     if not video_id:
         return jsonify({'error': 'missing id'}), 400
-    
+
+    cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
+
     ydl_opts = {
         'format': 'bestaudio/best',
         'quiet': True,
         'no_warnings': True,
-        'extractor_args': {
-            'youtube': {
-                'player_client': ['mweb'],
-            }
-        },
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
-        }
+        'cookiefile': cookies_path,
     }
-    
+
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(
