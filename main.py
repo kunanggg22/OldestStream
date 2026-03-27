@@ -14,8 +14,8 @@ def stream():
 
     ydl_opts = {
         'format': 'bestaudio/best',
-        'quiet': True,
-        'no_warnings': True,
+        'quiet': False,
+        'no_warnings': False,
         'cookiefile': cookies_path,
     }
 
