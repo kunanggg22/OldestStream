@@ -10,7 +10,7 @@ def stream():
         return jsonify({'error': 'missing id'}), 400
 
     ydl_opts = {
-        'format': 'bestaudio[ext=m4a]/bestaudio',
+        'format': 'bestaudio/best',
         'quiet': True,
         'no_warnings': True,
         'extractor_args': {
