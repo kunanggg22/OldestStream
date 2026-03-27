@@ -30,7 +30,6 @@ def stream():
         if not audio_url:
             return {"error": "No audio found"}, 500
 
-        # PROXY STREAM (INI YANG PENTING)
         r = requests.get(audio_url, stream=True, headers={
             "User-Agent": "Mozilla/5.0"
         })
@@ -42,7 +41,6 @@ def stream():
 
     except Exception as e:
         return {"error": str(e)}, 500
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 7860)))
