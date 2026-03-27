@@ -8,22 +8,21 @@ def stream():
     video_id = request.args.get('id')
     if not video_id:
         return jsonify({'error': 'missing id'}), 400
-
+    
     ydl_opts = {
         'format': 'bestaudio/best',
         'quiet': True,
         'no_warnings': True,
         'extractor_args': {
             'youtube': {
-                'player_client': ['ios'],
-                'player_skip': ['webpage', 'configs'],
+                'player_client': ['mweb'],
             }
         },
         'http_headers': {
-            'User-Agent': 'com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X)',
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
         }
     }
-
+    
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(
