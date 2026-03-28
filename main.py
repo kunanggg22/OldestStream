@@ -13,14 +13,20 @@ def stream():
 
     url = f"https://www.youtube.com/watch?v={video_id}"
 
-    ydl_opts = {
-        "format": "bestaudio",
-        "quiet": True,
-        "nocheckcertificate": True,
-        "http_headers": {
-            "User-Agent": "Mozilla/5.0"
+   ydl_opts = {
+    "format": "bestaudio/best",
+    "quiet": True,
+    "nocheckcertificate": True,
+    "http_headers": {
+        "User-Agent": "Mozilla/5.0"
+    },
+    "js_runtimes": ["node"],
+    "extractor_args": {
+        "youtube": {
+            "player_client": ["android", "web", "tv_embedded"]
         }
     }
+}
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
