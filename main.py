@@ -1,6 +1,7 @@
 from flask import Flask, request, Response
 import yt_dlp
 import requests
+import traceback
 import os
 
 app = Flask(__name__)
@@ -29,13 +30,16 @@ def stream():
     }
 
     try:
+        print(f"[stream] Extracting info for video_id={video_id}, url={url}")
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             audio_url = info.get("url")
 
         if not audio_url:
+            print(f"[stream] ERROR: No audio URL found in extracted info for video_id={video_id}")
             return {"error": "No audio found"}, 500
 
+        print(f"[stream] Successfully extracted audio URL for video_id={video_id}")
         r = requests.get(
             audio_url,
             stream=True,
@@ -56,7 +60,10 @@ def stream():
         )
 
     except Exception as e:
-        return {"error": str(e)}, 500
+        error_message = str(e)
+        print(f"[stream] ERROR for video_id={video_id}: {error_message}")
+        print(f"[stream] Traceback:\n{traceback.format_exc()}")
+        return {"error": error_message}, 500
 
 
 if __name__ == "__main__":
