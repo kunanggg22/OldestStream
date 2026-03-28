@@ -5,6 +5,10 @@ import os
 
 app = Flask(__name__)
 
+@app.route("/")
+def home():
+    return {"status": "Backend is running"}
+
 @app.route("/stream")
 def stream():
     video_id = request.args.get("id")
@@ -14,21 +18,21 @@ def stream():
     url = f"https://www.youtube.com/watch?v={video_id}"
 
     ydl_opts = {
-    "format": "bestaudio/best",
-    "quiet": True,
-    "nocheckcertificate": True,
-    "http_headers": {
-        "User-Agent": "Mozilla/5.0"
-    },
-    "js_runtimes": {
-        "node": {}
-    },
-    "extractor_args": {
-        "youtube": {
-            "player_client": ["android", "web", "tv_embedded"]
+        "format": "bestaudio/best",
+        "quiet": True,
+        "nocheckcertificate": True,
+        "http_headers": {
+            "User-Agent": "Mozilla/5.0"
+        },
+        "js_runtimes": {
+            "node": {}
+        },
+        "extractor_args": {
+            "youtube": {
+                "player_client": ["web"]
+            }
         }
     }
-}
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -38,23 +42,32 @@ def stream():
         if not audio_url:
             return {"error": "No audio found"}, 500
 
+        # 🔥 Range hanya dikirim kalau memang ada
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
+
+        if "Range" in request.headers:
+            headers["Range"] = request.headers["Range"]
+
         r = requests.get(
             audio_url,
             stream=True,
-            headers={
-                "User-Agent": "Mozilla/5.0",
-                "Range": request.headers.get("Range", "")
-            }
+            headers=headers
         )
+
+        response_headers = {
+            "Accept-Ranges": "bytes"
+        }
+
+        if "Content-Range" in r.headers:
+            response_headers["Content-Range"] = r.headers["Content-Range"]
 
         return Response(
             r.iter_content(chunk_size=1024),
             status=r.status_code,
             content_type=r.headers.get("content-type"),
-            headers={
-                "Accept-Ranges": "bytes",
-                "Content-Range": r.headers.get("Content-Range", "")
-            }
+            headers=response_headers
         )
 
     except Exception as e:
