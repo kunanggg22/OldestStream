@@ -1,2 +1,5 @@
 [phases.setup]
-nixPkgs = ["nodejs", "quickjs"]
+nixPkgs = ["nodejs"]
+
+[phases.install]
+cmds = ["pip install -U yt-dlp"]
